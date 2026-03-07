@@ -2,6 +2,72 @@
 
 Terraform module for provisioning an AWS SageMaker Studio domain with JupyterServer, KernelGateway, VPC-only mode, lifecycle configurations, user profiles, spaces, and custom images.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Domain["SageMaker Studio Domain"]
+        DOM["Studio Domain\n(VPC-only Mode)"]
+        UP["User Profiles"]
+        SP["Shared Spaces"]
+        DOM --> UP
+        DOM --> SP
+    end
+
+    subgraph Apps["Applications"]
+        JS["JupyterServer App"]
+        KG["KernelGateway App"]
+        CI["Custom Images"]
+    end
+
+    subgraph Config["Configuration"]
+        LC["Lifecycle Configs\n(Startup Scripts)"]
+        IAM["Execution Role\n(S3, ECR, CW, SM)"]
+    end
+
+    subgraph Network["Networking & Security"]
+        VPC["VPC / Subnets"]
+        SGR["Security Group\n(NFS/EFS)"]
+        KMS["KMS Encryption"]
+    end
+
+    subgraph Storage["Storage"]
+        EFS["EFS File System\n(Encrypted)"]
+        S3["S3 Buckets\n(Data / Artifacts)"]
+    end
+
+    UP --> JS
+    UP --> KG
+    KG --> CI
+    JS --> LC
+    KG --> LC
+    DOM --> IAM
+    DOM --> VPC
+    VPC --> SGR
+    DOM --> KMS
+    DOM --> EFS
+    IAM --> S3
+
+    style Domain fill:#FF9900,stroke:#FF9900,color:#fff
+    style Apps fill:#8C4FFF,stroke:#8C4FFF,color:#fff
+    style Config fill:#1A73E8,stroke:#1A73E8,color:#fff
+    style Network fill:#DD344C,stroke:#DD344C,color:#fff
+    style Storage fill:#3F8624,stroke:#3F8624,color:#fff
+    style DOM fill:#FF9900,stroke:#cc7a00,color:#fff
+    style UP fill:#FF9900,stroke:#cc7a00,color:#fff
+    style SP fill:#FF9900,stroke:#cc7a00,color:#fff
+    style JS fill:#8C4FFF,stroke:#6b3dcc,color:#fff
+    style KG fill:#8C4FFF,stroke:#6b3dcc,color:#fff
+    style CI fill:#8C4FFF,stroke:#6b3dcc,color:#fff
+    style LC fill:#1A73E8,stroke:#1459b3,color:#fff
+    style IAM fill:#1A73E8,stroke:#1459b3,color:#fff
+    style VPC fill:#DD344C,stroke:#b02a3d,color:#fff
+    style SGR fill:#DD344C,stroke:#b02a3d,color:#fff
+    style KMS fill:#DD344C,stroke:#b02a3d,color:#fff
+    style EFS fill:#3F8624,stroke:#2d6119,color:#fff
+    style S3 fill:#3F8624,stroke:#2d6119,color:#fff
+```
+
 ## Features
 
 - SageMaker Studio Domain with VPC-only network access
