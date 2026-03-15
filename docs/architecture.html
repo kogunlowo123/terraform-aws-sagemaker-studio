@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>terraform-aws-sagemaker-studio | Architecture</title>
+<style>
+:root{--ink:#0b0c0b;--ink2:#141514;--ink3:#1e1f1e;--border:#2a2b2a;--text:#c8c9c8;--text2:#9a9b9a;--accent:#c8420a;--accent2:#e05a1a;--green:#2ecc71;--blue:#3498db;--yellow:#f1c40f;--red:#e74c3c;--purple:#9b59b6;--mono:"SF Mono","Fira Code","Fira Mono","Roboto Mono",monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+header{border-bottom:1px solid var(--border);padding:32px 0}
+header h1{font-size:28px;color:#fff;font-weight:700}
+header h1 span{color:var(--accent)}
+header p.sub{color:var(--text2);margin-top:6px;font-size:13px}
+.badge{display:inline-block;padding:2px 10px;border-radius:3px;font-size:11px;font-weight:600;margin-right:6px;margin-top:8px}
+.badge-tf{background:#623ce4;color:#fff}.badge-aws{background:#ff9900;color:#111}.badge-mit{background:#2ecc71;color:#111}
+section{padding:40px 0;border-bottom:1px solid var(--border)}
+section:last-of-type{border-bottom:none}
+h2{font-size:20px;color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:4px;height:20px;background:var(--accent);display:inline-block;border-radius:2px}
+h3{font-size:15px;color:var(--accent2);margin:16px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:var(--ink2);border:1px solid var(--border);border-radius:6px;padding:20px}
+.card h4{color:#fff;font-size:14px;margin-bottom:6px}
+.card p{color:var(--text2);font-size:12px}
+.card .num{font-size:24px;color:var(--accent);font-weight:700}
+.arch-diagram{background:var(--ink2);border:1px solid var(--border);border-radius:6px;padding:32px;overflow-x:auto;margin:16px 0}
+.flow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center}
+.flow .box{background:var(--ink3);border:1px solid var(--border);border-radius:4px;padding:12px 18px;text-align:center;min-width:130px;font-size:12px;color:#fff}
+.flow .box.primary{border-color:var(--accent);background:rgba(200,66,10,0.1)}
+.flow .box.green{border-color:var(--green);background:rgba(46,204,113,0.06)}
+.flow .box.blue{border-color:var(--blue);background:rgba(52,152,219,0.06)}
+.flow .box.purple{border-color:var(--purple);background:rgba(155,89,182,0.06)}
+.flow .box.yellow{border-color:var(--yellow);background:rgba(241,196,15,0.06)}
+.flow .box small{display:block;color:var(--text2);font-size:10px;margin-top:4px}
+.flow .arrow{color:var(--accent);font-size:18px;font-weight:700}
+.flow .arrow-down{color:var(--accent);font-size:18px;writing-mode:vertical-rl}
+.flow-col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.flow-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{text-align:left;padding:10px 12px;background:var(--ink2);color:var(--accent2);border:1px solid var(--border);font-weight:600}
+td{padding:10px 12px;border:1px solid var(--border);color:var(--text)}
+tr:hover td{background:var(--ink2)}
+code{background:var(--ink3);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--accent2)}
+pre{background:var(--ink2);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-size:12px;line-height:1.6;margin:12px 0}
+.checklist{list-style:none;padding:0}
+.checklist li{padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px}
+.checklist li::before{content:"[ ]";color:var(--accent);font-weight:700;font-size:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.grid-2,.cards{grid-template-columns:1fr}.flow{flex-direction:column}}
+footer{border-top:1px solid var(--border);padding:24px 0;text-align:center;color:var(--text2);font-size:11px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1><span>//</span> terraform-aws-sagemaker-studio</h1>
+<p class="sub">AWS SageMaker Studio domain with JupyterServer, KernelGateway, VPC-only mode, lifecycle configurations, user profiles, spaces, and custom images.</p>
+<div>
+<span class="badge badge-tf">Terraform &ge; 1.5.0</span>
+<span class="badge badge-aws">AWS &ge; 5.20.0</span>
+<span class="badge badge-mit">MIT License</span>
+</div>
+</header>
+
+<section>
+<h2>Executive Summary</h2>
+<p>This module provisions an AWS SageMaker Studio domain with comprehensive configuration for data science teams. It creates a Studio domain in VPC-only mode by default, manages user profiles with per-user execution roles, shared collaboration spaces, lifecycle configurations for startup scripts, and custom SageMaker images. Networking is secured via a dedicated security group for NFS/EFS access, with optional KMS encryption for data at rest. An IAM execution role is auto-provisioned with permissions scoped to S3, ECR, CloudWatch, and SageMaker APIs.</p>
+</section>
+
+<section>
+<h2>Overview</h2>
+<div class="cards">
+<div class="card"><div class="num">6</div><h4>Resource Types</h4><p>Domain, User Profiles, Spaces, Lifecycle Configs, Custom Images, Image Versions</p></div>
+<div class="card"><div class="num">14</div><h4>Input Variables</h4><p>Domain settings, user profiles, spaces, lifecycle configs, custom images, security</p></div>
+<div class="card"><div class="num">11</div><h4>Outputs</h4><p>Domain ID/ARN/URL, EFS ID, IAM role, security group, user profiles, spaces, lifecycle configs, images</p></div>
+<div class="card"><div class="num">2</div><h4>App Types</h4><p>JupyterServer and KernelGateway with configurable resource specs</p></div>
+</div>
+</section>
+
+<section>
+<h2>Architecture Diagram</h2>
+<div class="arch-diagram">
+<div class="flow-col">
+<div class="flow-row">
+<div class="box blue">VPC / Subnets<small>VpcOnly mode</small></div>
+<div class="box">Security Group<small>NFS / EFS rules</small></div>
+<div class="box purple">KMS Encryption<small>Data at rest</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box primary">SageMaker Studio Domain<small>aws_sagemaker_domain</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box blue">User Profiles<small>Per-user execution roles</small></div>
+<div class="box green">Shared Spaces<small>Collaboration</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box purple">JupyterServer App<small>Notebooks</small></div>
+<div class="box purple">KernelGateway App<small>Compute kernels</small></div>
+<div class="box yellow">Custom Images<small>ECR-based</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box green">Lifecycle Configs<small>Startup scripts</small></div>
+<div class="box">EFS File System<small>Encrypted storage</small></div>
+<div class="box blue">S3 Buckets<small>Data &amp; artifacts</small></div>
+</div>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Component Breakdown</h2>
+<table>
+<tr><th>Component</th><th>Resource</th><th>Purpose</th></tr>
+<tr><td>Studio Domain</td><td><code>aws_sagemaker_domain</code></td><td>Central domain with VPC, auth mode, KMS, default user settings</td></tr>
+<tr><td>User Profiles</td><td><code>aws_sagemaker_user_profile</code></td><td>Individual user access with per-user execution roles and tags</td></tr>
+<tr><td>Spaces</td><td><code>aws_sagemaker_space</code></td><td>Shared collaboration spaces with configurable app settings</td></tr>
+<tr><td>Lifecycle Configs</td><td><code>aws_sagemaker_studio_lifecycle_config</code></td><td>Startup scripts for JupyterServer and KernelGateway apps</td></tr>
+<tr><td>Custom Images</td><td><code>aws_sagemaker_image</code> + <code>image_version</code></td><td>Custom container images from ECR for specialized compute</td></tr>
+<tr><td>IAM Execution Role</td><td><code>aws_iam_role</code></td><td>S3, ECR, CloudWatch, SageMaker permissions</td></tr>
+<tr><td>Security Group</td><td><code>aws_security_group</code></td><td>NFS/EFS access for Studio domain</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Data Flow</h2>
+<div class="arch-diagram">
+<div class="flow">
+<div class="box blue">User Login (IAM/SSO)</div>
+<div class="arrow">&rarr;</div>
+<div class="box primary">Studio Domain</div>
+<div class="arrow">&rarr;</div>
+<div class="box purple">Jupyter / KernelGateway</div>
+<div class="arrow">&rarr;</div>
+<div class="box green">EFS (Notebooks)</div>
+<div class="arrow">&rarr;</div>
+<div class="box yellow">S3 (Data / Models)</div>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Security Controls</h2>
+<div class="grid-2">
+<div class="card"><h4>VPC-Only Network Access</h4><p>Default app_network_access_type is VpcOnly, blocking public internet access from Studio</p></div>
+<div class="card"><h4>KMS Encryption</h4><p>Optional KMS key ARN for encrypting EFS and Studio data at rest</p></div>
+<div class="card"><h4>Security Groups</h4><p>Dedicated SG for NFS/EFS with additional SG support via security_group_ids</p></div>
+<div class="card"><h4>IAM Auth / SSO</h4><p>Validated auth_mode supporting IAM or AWS SSO federation</p></div>
+<div class="card"><h4>EFS Encryption</h4><p>enable_efs_encryption defaults to true for encrypted home directories</p></div>
+<div class="card"><h4>Per-User Roles</h4><p>Each user profile can have a dedicated execution role for least-privilege access</p></div>
+</div>
+</section>
+
+<section>
+<h2>Industry Adaptation</h2>
+<table>
+<tr><th>Industry</th><th>Configuration</th></tr>
+<tr><td>Healthcare</td><td>VpcOnly mode, KMS encryption, lifecycle configs to install compliance packages</td></tr>
+<tr><td>Finance</td><td>SSO auth, per-user execution roles, custom images for risk modeling frameworks</td></tr>
+<tr><td>Research / Academia</td><td>Shared spaces for collaboration, lifecycle configs for research tooling</td></tr>
+<tr><td>Enterprise ML</td><td>Custom images from ECR, KernelGateway with GPU instances, multi-profile setup</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Production Readiness Checklist</h2>
+<ul class="checklist">
+<li>Set <code>app_network_access_type = "VpcOnly"</code></li>
+<li>Provide <code>kms_key_arn</code> for data at rest encryption</li>
+<li>Use SSO auth mode for enterprise federated access</li>
+<li>Configure lifecycle configs to enforce security packages on startup</li>
+<li>Assign per-user execution roles with scoped S3 bucket access</li>
+<li>Deploy in 2+ AZ subnets for high availability</li>
+<li>Lock down security groups to only allow NFS traffic from within VPC</li>
+<li>Tag all resources with Environment, Team, and CostCenter</li>
+</ul>
+</section>
+
+<section>
+<h2>Configuration Reference</h2>
+<h3>Required Variables</h3>
+<table>
+<tr><th>Variable</th><th>Type</th><th>Description</th></tr>
+<tr><td><code>domain_name</code></td><td>string</td><td>Name of the SageMaker Studio domain</td></tr>
+<tr><td><code>vpc_id</code></td><td>string</td><td>VPC ID for the domain</td></tr>
+<tr><td><code>subnet_ids</code></td><td>list(string)</td><td>Subnet IDs for the domain</td></tr>
+</table>
+<h3>Key Optional Variables</h3>
+<table>
+<tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>auth_mode</code></td><td>"IAM"</td><td>Authentication mode (IAM or SSO)</td></tr>
+<tr><td><code>app_network_access_type</code></td><td>"VpcOnly"</td><td>Network access type</td></tr>
+<tr><td><code>kms_key_arn</code></td><td>null</td><td>KMS key ARN for encryption</td></tr>
+<tr><td><code>enable_efs_encryption</code></td><td>true</td><td>Enable EFS encryption</td></tr>
+<tr><td><code>user_profiles</code></td><td>{}</td><td>Map of user profiles to create</td></tr>
+<tr><td><code>spaces</code></td><td>{}</td><td>Map of shared spaces</td></tr>
+<tr><td><code>lifecycle_configs</code></td><td>{}</td><td>Map of lifecycle configurations</td></tr>
+<tr><td><code>custom_images</code></td><td>[]</td><td>List of custom SageMaker images</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Deployment</h2>
+<pre>
+module "sagemaker_studio" {
+  source = "terraform-aws-sagemaker-studio"
+
+  domain_name = "my-studio-domain"
+  vpc_id      = "vpc-0123456789abcdef0"
+  subnet_ids  = ["subnet-0123456789abcdef0"]
+
+  user_profiles = {
+    data_scientist = {
+      name = "data-scientist"
+      tags = { Role = "DataScientist" }
+    }
+  }
+
+  tags = { Environment = "dev" }
+}
+</pre>
+</section>
+
+<section>
+<h2>Links</h2>
+<table>
+<tr><td><a href="https://docs.aws.amazon.com/sagemaker/latest/dg/studio.html">AWS SageMaker Studio Documentation</a></td></tr>
+<tr><td><a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sagemaker_domain">Terraform aws_sagemaker_domain</a></td></tr>
+<tr><td><a href="https://docs.aws.amazon.com/sagemaker/latest/dg/studio-lcc.html">Lifecycle Configuration</a></td></tr>
+</table>
+</section>
+
+<footer>
+<p>terraform-aws-sagemaker-studio | Architecture Documentation | Generated 2026-03-15</p>
+</footer>
+
+</div>
+</body>
+</html>
