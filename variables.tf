@@ -14,7 +14,7 @@ variable "subnet_ids" {
 }
 
 variable "auth_mode" {
-  description = "The authentication mode for the SageMaker Studio domain."
+  description = "The authentication mode for the domain (IAM or SSO)."
   type        = string
   default     = "IAM"
 
@@ -25,7 +25,7 @@ variable "auth_mode" {
 }
 
 variable "app_network_access_type" {
-  description = "The network access type for the SageMaker Studio domain."
+  description = "The network access type for the domain (PublicInternetOnly or VpcOnly)."
   type        = string
   default     = "VpcOnly"
 
@@ -120,11 +120,11 @@ variable "lifecycle_configs" {
 variable "custom_images" {
   description = "List of custom SageMaker images to create."
   type = list(object({
-    image_name    = string
-    image_uri     = string
-    role_arn      = optional(string)
-    display_name  = optional(string)
-    description   = optional(string)
+    image_name   = string
+    image_uri    = string
+    role_arn     = optional(string)
+    display_name = optional(string)
+    description  = optional(string)
   }))
   default = []
 }
@@ -136,7 +136,7 @@ variable "enable_efs_encryption" {
 }
 
 variable "security_group_ids" {
-  description = "List of additional security group IDs to attach to the SageMaker Studio domain."
+  description = "List of additional security group IDs for the SageMaker Studio domain."
   type        = list(string)
   default     = []
 }
